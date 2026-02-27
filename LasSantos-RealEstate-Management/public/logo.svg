@@ -1,0 +1,10 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue Block (Bottom Left) -->
+  <rect x="20" y="50" width="25" height="25" fill="#3B82F6" rx="3"/>
+  <!-- Orange Block (Top Left) -->
+  <rect x="20" y="15" width="25" height="25" fill="#F97316" rx="3"/>
+  <!-- Teal Block (Top Right) -->
+  <rect x="55" y="15" width="25" height="25" fill="#06B6D4" rx="3"/>
+  <!-- Yellow/Gold Block (Middle Right) -->
+  <rect x="55" y="50" width="25" height="25" fill="#EAB308" rx="3"/>
+</svg>

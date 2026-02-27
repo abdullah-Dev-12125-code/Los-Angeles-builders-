@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  # Flask API Backend
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: los-santos-api
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=api.py
+    command: python api.py
+    networks:
+      - los-santos-network
+    restart: unless-stopped
+
+  # Python Dash Dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: los-santos-dashboard
+    ports:
+      - "8050:8050"
+    environment:
+      - DASH_ENV=production
+    command: python app.py
+    depends_on:
+      - api
+    networks:
+      - los-santos-network
+    restart: unless-stopped
+
+networks:
+  los-santos-network:
+    driver: bridge
