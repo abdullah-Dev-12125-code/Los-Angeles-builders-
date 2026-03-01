@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Heart, ChevronLeft, ChevronRight, Star, MapPin, MessageCircle } from "lucide-react";
 import { Property } from "@/lib/property-data";
@@ -11,6 +11,7 @@ interface PropertyCardProps {
   onFavoriteToggle: (propertyId: string) => void;
 }
 
+// Memoized PropertyCard - prevents unnecessary re-renders improving performance
 const PropertyCard = memo(function PropertyCard({
   property,
   onCardClick,
@@ -84,7 +85,7 @@ const PropertyCard = memo(function PropertyCard({
                   animate={{ opacity: 1, scale: 1 }}
                   className={`px-3 py-1 rounded-full text-xs font-semibold text-white backdrop-blur-sm relative ${
                     tag === "Hot"
-                      ? "bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/50"
+                      ? "bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-lg shadow-yellow-500/50"
                       : tag === "Trending"
                         ? "bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg shadow-orange-500/50"
                         : tag === "New"

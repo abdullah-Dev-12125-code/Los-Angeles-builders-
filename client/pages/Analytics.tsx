@@ -288,14 +288,14 @@ export default function Analytics() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-br from-orange-50 to-red-50">
+          <Card className="p-6 bg-gradient-to-br from-amber-50 to-orange-50">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-amber-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending Revenue</p>
-                <p className="text-2xl font-bold text-red-600">$11,400</p>
+                <p className="text-2xl font-bold text-amber-600">$11,400</p>
                 <p className="text-xs text-muted-foreground mt-1">2 overdue payments</p>
               </div>
             </div>

@@ -10,7 +10,21 @@ export default {
       padding: "2rem",
       screens: {
         "2xl": "1400px",
+        "4xl": "1600px",
+        "5xl": "1920px",
       },
+    },
+    screens: {
+      xs: "360px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+      "3xl": "1920px", // FHD
+      "4xl": "2560px", // 4K / 2K Ultra HD
+      "5xl": "3840px", // 5K / 4K UHD
+      "6xl": "5120px", // 8K
     },
     extend: {
       colors: {
@@ -20,7 +34,7 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#FF385C", /* Airbnb Red */
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -36,7 +50,7 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT: "#FF385C", /* Airbnb Red - Primary accent */
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
@@ -59,9 +73,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0.625rem", /* Reduced from 0.75 for more professional look */
+        md: "calc(0.625rem - 2px)",
+        sm: "calc(0.625rem - 4px)",
       },
       keyframes: {
         "accordion-down": {
@@ -84,6 +98,29 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      spacing: {
+        "4xl": "56rem",
+        "5xl": "64rem",
+        "6xl": "72rem",
+        "7xl": "80rem",
+        "8xl": "88rem",
+      },
+      maxWidth: {
+        "4xl": "56rem",
+        "5xl": "64rem",
+        "6xl": "72rem",
+        "7xl": "80rem",
+        "8xl": "88rem",
+        "prose": "65ch",
+        "screen-4k": "2560px",
+        "screen-5k": "3840px",
+      },
+      columns: {
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8",
       },
     },
   },

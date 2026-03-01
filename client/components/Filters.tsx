@@ -195,15 +195,15 @@ export default function Filters({
     children: React.ReactNode;
     badge?: number;
   }) => (
-    <div className="border-b border-gray-200 pb-4">
+    <div className="border-b border-yellow-100 pb-4">
       <button
         onClick={() => toggleSection(section)}
-        className="flex items-center justify-between w-full font-semibold text-gray-900 hover:text-amber-600 transition-colors group"
+        className="flex items-center justify-between w-full font-semibold text-gray-900 hover:text-yellow-600 transition-colors group"
       >
         <div className="flex items-center gap-2">
           <span>{title}</span>
           {badge ? (
-            <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full">
               {badge}
             </span>
           ) : null}
@@ -235,7 +235,7 @@ export default function Filters({
       variants={containerVariants}
       initial="hidden"
       animate={isOpen ? "visible" : "hidden"}
-      className="w-full lg:w-80 bg-white rounded-2xl shadow-lg p-6 space-y-4 lg:sticky lg:top-24 h-fit border border-gray-100"
+      className="w-full lg:w-80 bg-gradient-to-br from-white via-yellow-50/30 to-yellow-100/40 rounded-2xl shadow-lg p-6 space-y-4 lg:sticky lg:top-24 h-fit border border-yellow-200"
     >
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-bold text-gray-900">Filters</h3>
@@ -243,7 +243,7 @@ export default function Filters({
           whileHover={{ scale: 1.05, x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleClearAll}
-          className="text-xs font-bold text-amber-600 hover:text-amber-700 transition-all px-3 py-1.5 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 rounded-lg border border-transparent hover:border-amber-200 shadow-sm hover:shadow-md"
+          className="text-xs font-bold text-yellow-700 hover:text-yellow-800 transition-all px-3 py-1.5 hover:bg-gradient-to-r hover:from-yellow-100 hover:to-yellow-200 rounded-lg border border-transparent hover:border-yellow-300 shadow-sm hover:shadow-md"
         >
           Clear All
         </motion.button>
@@ -262,9 +262,9 @@ export default function Filters({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-amber-50 via-orange-50/50 to-amber-50 border-2 border-amber-200/70 rounded-xl p-3 space-y-2 shadow-sm"
+          className="bg-gradient-to-br from-yellow-50 via-yellow-100/50 to-yellow-50 border-2 border-yellow-200/70 rounded-xl p-3 space-y-2 shadow-sm"
         >
-          <p className="text-xs font-bold text-amber-900 uppercase tracking-wide">Active Filters</p>
+          <p className="text-xs font-bold text-yellow-900 uppercase tracking-wide">Active Filters</p>
           <div className="flex flex-wrap gap-2">
             {currentFilters.location.map((loc) => (
               <motion.button
@@ -275,7 +275,7 @@ export default function Filters({
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => toggleLocation(loc)}
-                className="bg-white border-2 border-amber-300 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full hover:bg-amber-50 transition-all flex items-center gap-1.5 shadow-sm hover:shadow-md"
+                className="bg-white border-2 border-yellow-300 text-yellow-700 text-xs font-bold px-2.5 py-1 rounded-full hover:bg-yellow-50 transition-all flex items-center gap-1.5 shadow-sm hover:shadow-md"
               >
                 {loc.split(" ")[0]}
                 <X className="w-3 h-3" />
@@ -290,7 +290,7 @@ export default function Filters({
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => toggleType(type)}
-                className="bg-white border-2 border-amber-300 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full hover:bg-amber-50 transition-all flex items-center gap-1.5 capitalize shadow-sm hover:shadow-md"
+                className="bg-white border-2 border-yellow-300 text-yellow-700 text-xs font-bold px-2.5 py-1 rounded-full hover:bg-yellow-50 transition-all flex items-center gap-1.5 capitalize shadow-sm hover:shadow-md"
               >
                 {type}
                 <X className="w-3 h-3" />
@@ -321,7 +321,7 @@ export default function Filters({
                 Minimum
               </label>
               <div className="relative group">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium group-focus-within:text-amber-600 transition-colors">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium group-focus-within:text-yellow-600 transition-colors">
                   $
                 </span>
                 <input
@@ -330,7 +330,7 @@ export default function Filters({
                   onChange={(e) => handleMinInput(e.target.value)}
                   onBlur={handleMinBlur}
                   placeholder="0"
-                  className="w-full pl-7 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 hover:border-gray-300"
+                  className="w-full pl-7 pr-3 py-2.5 border-2 border-yellow-200 rounded-xl text-sm font-medium focus:outline-none focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 transition-all duration-200 hover:border-yellow-300"
                 />
               </div>
             </motion.div>
@@ -342,7 +342,7 @@ export default function Filters({
                 Maximum
               </label>
               <div className="relative group">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium group-focus-within:text-amber-600 transition-colors">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium group-focus-within:text-yellow-600 transition-colors">
                   $
                 </span>
                 <input
@@ -351,7 +351,7 @@ export default function Filters({
                   onChange={(e) => handleMaxInput(e.target.value)}
                   onBlur={handleMaxBlur}
                   placeholder="10,000"
-                  className="w-full pl-7 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 hover:border-gray-300"
+                  className="w-full pl-7 pr-3 py-2.5 border-2 border-yellow-200 rounded-xl text-sm font-medium focus:outline-none focus:border-yellow-400 focus:ring-4 focus:ring-yellow-100 transition-all duration-200 hover:border-yellow-300"
                 />
               </div>
             </motion.div>
@@ -363,9 +363,9 @@ export default function Filters({
             animate={{ scale: [1, 1.02, 1] }}
             transition={{ duration: 0.3 }}
             key={`${localMinPrice}-${localMaxPrice}`}
-            className="bg-gradient-to-br from-amber-50 via-amber-100/50 to-orange-50 rounded-xl p-4 border-2 border-amber-200/50 shadow-sm"
+            className="bg-gradient-to-br from-yellow-50 via-yellow-100/50 to-yellow-100 rounded-xl p-4 border-2 border-yellow-200/50 shadow-sm"
           >
-            <p className="text-sm font-bold text-amber-900 text-center">
+            <p className="text-sm font-bold text-yellow-900 text-center">
               {formatCurrency(localMinPrice)} - {formatCurrency(localMaxPrice)}
             </p>
           </motion.div>
@@ -388,7 +388,7 @@ export default function Filters({
                 type="checkbox"
                 checked={currentFilters.location.includes(loc)}
                 onChange={() => toggleLocation(loc)}
-                className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                className="w-4 h-4 rounded border-yellow-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
               />
               <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                 {loc}
@@ -414,7 +414,7 @@ export default function Filters({
                 type="checkbox"
                 checked={currentFilters.type.includes(type)}
                 onChange={() => toggleType(type)}
-                className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                className="w-4 h-4 rounded border-yellow-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
               />
               <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors capitalize">
                 {type}
@@ -440,7 +440,7 @@ export default function Filters({
                 type="checkbox"
                 checked={currentFilters.rating.includes(rating)}
                 onChange={() => toggleRating(rating)}
-                className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                className="w-4 h-4 rounded border-yellow-300 text-yellow-500 focus:ring-yellow-400 cursor-pointer"
               />
               <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                 {rating}+ ⭐

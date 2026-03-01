@@ -7,8 +7,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DarkModeProvider } from "@/lib/dark-mode-context";
+import { UserProvider } from "@/lib/user-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useEffect, useState } from "react";
+import { UserRole, getStoredRole } from "@/lib/auth";
 
 // Pages
 import Welcome from "./pages/Welcome";
@@ -30,6 +32,14 @@ import UserProperties from "./pages/UserProperties";
 import UserPayments from "./pages/UserPayments";
 import UserProfile from "./pages/UserProfile";
 import UserSettings from "./pages/UserSettings";
+import BuyerDashboard from "./pages/BuyerDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import SellerDashboard from "./pages/SellerDashboard";
+import PropertyCommandCenter from "./pages/PropertyCommandCenter";
+import SellerVerification from "./pages/SellerVerification";
+import SellerDashboardPro from "./pages/SellerDashboardPro";
+import BuyerDashboardPro from "./pages/BuyerDashboardPro";
+import UserAccountDashboard from "./pages/UserAccountDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,16 +50,14 @@ const ProtectedRoute = ({
   requiredRole,
 }: {
   element: React.ReactNode;
-  requiredRole?: "admin" | "user";
+  requiredRole?: UserRole;
 }) => {
-  const [userType, setUserType] = useState<"admin" | "user" | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("userType");
-    if (stored === "admin" || stored === "user") {
-      setUserType(stored);
-    }
+    const stored = getStoredRole();
+    setUserRole(stored);
     setLoading(false);
   }, []);
 
@@ -64,17 +72,12 @@ const ProtectedRoute = ({
     );
   }
 
-  if (!userType) {
-    return <Navigate to="/admin-login" replace />;
+  if (!userRole) {
+    return <Navigate to="/welcome" replace />;
   }
 
-  if (requiredRole && userType !== requiredRole) {
-    return (
-      <Navigate
-        to={userType === "admin" ? "/dashboard" : "/user-dashboard"}
-        replace
-      />
-    );
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{element}</>;
@@ -82,11 +85,15 @@ const ProtectedRoute = ({
 
 // Root redirect component
 const RootRedirect = () => {
-  const userType = localStorage.getItem("userType");
-  if (userType === "user") {
-    return <Navigate to="/user-dashboard" replace />;
-  } else if (userType === "admin") {
+  const role = getStoredRole();
+  if (role === "buyer") {
     return <Navigate to="/dashboard" replace />;
+  }
+  if (role === "seller") {
+    return <Navigate to="/seller" replace />;
+  }
+  if (role === "admin") {
+    return <Navigate to="/admin" replace />;
   }
   return <Navigate to="/welcome" replace />;
 };
@@ -94,10 +101,11 @@ const RootRedirect = () => {
 const App = () => (
   <ErrorBoundary>
     <DarkModeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
+      <UserProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
           <BrowserRouter>
             <Routes>
               {/* Landing */}
@@ -106,14 +114,78 @@ const App = () => (
               {/* Auth Routes */}
               <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/user-login" element={<UserLogin />} />
+              <Route path="/seller-login" element={<UserLogin />} />
 
               {/* Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute
+                    element={<AdminDashboard />}
+                    requiredRole="admin"
+                  />
+                }
+              />
+              <Route
+                path="/seller"
+                element={
+                  <ProtectedRoute
+                    element={<SellerDashboard />}
+                    requiredRole="seller"
+                  />
+                }
+              />
+              <Route
+                path="/seller-pro"
+                element={
+                  <ProtectedRoute
+                    element={<SellerDashboardPro />}
+                    requiredRole="seller"
+                  />
+                }
+              />
+              <Route
+                path="/seller-verification"
+                element={
+                  <ProtectedRoute
+                    element={<SellerVerification />}
+                    requiredRole="seller"
+                  />
+                }
+              />
+              <Route
+                path="/command-center"
+                element={
+                  <ProtectedRoute
+                    element={<PropertyCommandCenter />}
+                    requiredRole="seller"
+                  />
+                }
+              />
               <Route
                 path="/dashboard"
                 element={
                   <ProtectedRoute
-                    element={<Dashboard />}
-                    requiredRole="admin"
+                    element={<BuyerDashboard />}
+                    requiredRole="buyer"
+                  />
+                }
+              />
+              <Route
+                path="/buyer-pro"
+                element={
+                  <ProtectedRoute
+                    element={<BuyerDashboardPro />}
+                    requiredRole="buyer"
+                  />
+                }
+              />
+              <Route
+                path="/buyer-dashboard"
+                element={
+                  <ProtectedRoute
+                    element={<BuyerDashboard />}
+                    requiredRole="buyer"
                   />
                 }
               />
@@ -202,7 +274,16 @@ const App = () => (
                 element={
                   <ProtectedRoute
                     element={<UserDashboard />}
-                    requiredRole="user"
+                    requiredRole="buyer"
+                  />
+                }
+              />
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute
+                    element={<UserAccountDashboard />}
+                    requiredRole="buyer"
                   />
                 }
               />
@@ -211,7 +292,7 @@ const App = () => (
                 element={
                   <ProtectedRoute
                     element={<UserProfile />}
-                    requiredRole="user"
+                    requiredRole="buyer"
                   />
                 }
               />
@@ -220,7 +301,7 @@ const App = () => (
                 element={
                   <ProtectedRoute
                     element={<UserSettings />}
-                    requiredRole="user"
+                    requiredRole="buyer"
                   />
                 }
               />
@@ -229,7 +310,7 @@ const App = () => (
                 element={
                   <ProtectedRoute
                     element={<UserProperties />}
-                    requiredRole="user"
+                    requiredRole="buyer"
                   />
                 }
               />
@@ -238,7 +319,7 @@ const App = () => (
                 element={
                   <ProtectedRoute
                     element={<UserPayments />}
-                    requiredRole="user"
+                    requiredRole="buyer"
                   />
                 }
               />
@@ -252,11 +333,12 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </UserProvider>
     </DarkModeProvider>
   </ErrorBoundary>
 );
-
 const container = document.getElementById("root");
+
 if (container && !container._reactRoot) {
   const root = createRoot(container);
   (container as any)._reactRoot = root;

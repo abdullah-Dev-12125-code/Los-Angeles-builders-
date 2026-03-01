@@ -1,458 +1,507 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { FormEvent, useMemo, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home,
-  Users,
-  DollarSign,
-  TrendingUp,
-  BarChart3,
-  Plus,
-  Edit,
-  Trash2,
-  Send,
-  Check,
-  AlertCircle,
-  Calendar,
+  Eye, MessageSquare, PlusCircle, Trash2, Pencil, CheckCircle2, AlertCircle,
+  TrendingUp, Home, BarChart3, DollarSign, Users, Clock, Upload, Building2
 } from "lucide-react";
+import { Property, PropertyStatus, getProperties, upsertProperty, deletePropertyById, updatePropertyStatus } from "@/lib/property-system";
+import { getRandomPropertyImage } from "@/lib/image-service";
+import ManageBuildings from "@/components/ManageBuildings";
 
-interface StatCardProps {
+type FormState = {
   title: string;
-  value: number;
-  prefix?: string;
-  suffix?: string;
-  icon: React.ReactNode;
-  color: string;
-  trend?: string;
-}
+  description: string;
+  price: string;
+  location: string;
+  type: Property["type"];
+  bedrooms: string;
+  bathrooms: string;
+  area: string;
+  amenities: string;
+  images: string;
+  featuredImage: string;
+  status: "active" | "draft";
+};
 
-function StatCard({ title, value, prefix = "", suffix = "", icon, color, trend }: StatCardProps) {
-  const [count, setCount] = useState(0);
+const INITIAL_FORM: FormState = {
+  title: "",
+  description: "",
+  price: "",
+  location: "",
+  type: "residential",
+  bedrooms: "0",
+  bathrooms: "0",
+  area: "",
+  amenities: "",
+  images: "",
+  featuredImage: "",
+  status: "active",
+};
 
-  useEffect(() => {
-    let start = 0;
-    const end = value;
-    const duration = 2000;
-    const increment = end / (duration / 16);
-
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-
-    return () => clearInterval(timer);
-  }, [value]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.02, y: -4 }}
-      className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 transition-all"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-          <h3 className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-            {prefix}{count.toLocaleString()}{suffix}
-          </h3>
-          {trend && (
-            <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
-              {trend}
-            </p>
-          )}
-        </div>
-        <div className={`w-14 h-14 rounded-xl ${color} flex items-center justify-center`}>
-          {icon}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+const SELLER_ID = "seller-1";
 
 export default function SellerDashboard() {
-  const [properties] = useState([
-    { id: 1, title: "Modern Downtown Apartment", tenants: 2, revenue: 4500, status: "occupied" },
-    { id: 2, title: "Beach House Villa", tenants: 1, revenue: 6000, status: "occupied" },
-    { id: 3, title: "Suburban Family Home", tenants: 0, revenue: 0, status: "vacant" },
-  ]);
+  const [properties, setProperties] = useState<Property[]>(() => getProperties());
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"properties" | "buildings">("properties");
 
-  const [tenants] = useState([
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      property: "Modern Downtown Apartment",
-      rent: 2250,
-      status: "paid",
-      email: "sarah.j@example.com",
-      phone: "+1 (555) 234-5678",
-      leaseEnd: "2026-12-31",
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      property: "Beach House Villa",
-      rent: 6000,
-      status: "due",
-      email: "m.chen@example.com",
-      phone: "+1 (555) 345-6789",
-      leaseEnd: "2026-10-15",
-    },
-    {
-      id: 3,
-      name: "Emily Davis",
-      property: "Modern Downtown Apartment",
-      rent: 2250,
-      status: "overdue",
-      email: "emily.d@example.com",
-      phone: "+1 (555) 456-7890",
-      leaseEnd: "2027-03-20",
-    },
-  ]);
-
-  const [payments] = useState([
-    { month: "January", amount: 10500, status: "received" },
-    { month: "February", amount: 10500, status: "received" },
-    { month: "March", amount: 4500, status: "partial" },
-    { mouth: "April", amount: 0, status: "pending" },
-  ]);
-
-  const totalProperties = properties.length;
-  const activeTenants = tenants.length;
-  const monthlyRevenue = properties.reduce((sum, p) => sum + p.revenue, 0);
-  const paymentsDue = tenants.filter((t) => t.status !== "paid").length;
-  const occupancyRate = Math.round(
-    (properties.filter((p) => p.status === "occupied").length / totalProperties) * 100
+  // Get seller's properties
+  const sellerProperties = useMemo(
+    () => properties.filter((p) => p.sellerId === SELLER_ID),
+    [properties]
   );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.1 },
-    },
-  };
+  // Calculate metrics
+  const metrics = useMemo(() => {
+    const total = sellerProperties.length;
+    const active = sellerProperties.filter((p) => p.status === "active").length;
+    const pending = sellerProperties.filter((p) => p.status === "pending").length;
+    const totalInquiries = sellerProperties.reduce((sum, p) => sum + p.inquiries, 0);
+    const totalRevenue = sellerProperties.reduce((sum, p) => sum + p.revenue, 0);
+    const avgPrice = total > 0 ? sellerProperties.reduce((sum, p) => sum + p.price, 0) / total : 0;
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  };
+    return { total, active, pending, totalInquiries, totalRevenue, avgPrice };
+  }, [sellerProperties]);
+
+  // Validate form
+  const validateForm = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!form.title.trim()) errors.title = "Title required";
+    if (!form.description.trim()) errors.description = "Description required";
+    if (!form.price || Number(form.price) <= 0) errors.price = "Valid price required";
+    if (!form.location.trim()) errors.location = "Location required";
+    if (!form.area || Number(form.area) <= 0) errors.area = "Valid area required";
+
+    const images = form.images.split(",").map((url) => url.trim()).filter(Boolean);
+    if (images.length === 0) errors.images = "At least one image required";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [form]);
+
+  // Map form to property
+  const mapFormToProperty = useCallback((status: PropertyStatus): Property => {
+    const imageList = form.images.split(",").map((url) => url.trim()).filter(Boolean);
+    const safeImages = imageList.length > 0 ? imageList : [getRandomPropertyImage().url];
+    const featuredImage = form.featuredImage.trim() || safeImages[0];
+
+    return {
+      id: editingId ?? `property-${Date.now()}`,
+      title: form.title,
+      description: form.description,
+      price: Number(form.price),
+      location: form.location,
+      type: form.type,
+      bedrooms: Number(form.bedrooms || 0),
+      bathrooms: Number(form.bathrooms || 0),
+      area: Number(form.area),
+      amenities: form.amenities.split(",").map((item) => item.trim()).filter(Boolean),
+      images: safeImages,
+      featuredImage,
+      rating: 4.5,
+      reviews: 0,
+      sellerId: SELLER_ID,
+      status,
+      views: 0,
+      revenue: 0,
+      inquiries: 0,
+      createdAt: new Date(),
+    };
+  }, [editingId, form]);
+
+  // Handle form submit
+  const handleSubmit = useCallback((e: FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const status: PropertyStatus = form.status === "draft" ? "draft" : "pending";
+    const property = mapFormToProperty(status);
+    setProperties(upsertProperty(property));
+
+    setSuccessMessage(editingId ? "Property updated successfully!" : "Property submitted for review!");
+    setEditingId(null);
+    setForm(INITIAL_FORM);
+    setIsFormOpen(false);
+
+    setTimeout(() => setSuccessMessage(""), 3000);
+  }, [validateForm, mapFormToProperty, form.status, editingId]);
+
+  // Handle edit
+  const startEdit = useCallback((property: Property) => {
+    setEditingId(property.id);
+    setForm({
+      title: property.title,
+      description: property.description,
+      price: String(property.price),
+      location: property.location,
+      type: property.type,
+      bedrooms: String(property.bedrooms),
+      bathrooms: String(property.bathrooms),
+      area: String(property.area),
+      amenities: property.amenities.join(", "),
+      images: property.images.join(", "),
+      featuredImage: property.featuredImage,
+      status: property.status === "draft" ? "draft" : "active",
+    });
+    setIsFormOpen(true);
+  }, []);
+
+  // Handle delete
+  const handleDelete = useCallback((id: string) => {
+    if (confirm("Delete this property? This cannot be undone.")) {
+      setProperties(deletePropertyById(id));
+    }
+  }, []);
+
+  // Handle toggle active/draft
+  const toggleStatus = useCallback((property: Property) => {
+    const newStatus: PropertyStatus = property.status === "active" ? "draft" : "active";
+    setProperties(updatePropertyStatus(property.id, newStatus));
+  }, []);
+
+  // Sort properties for display
+  const sortedProperties = useMemo(() => {
+    return [...sellerProperties].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [sellerProperties]);
+
+  // Get inquiries
+  const recentInquiries = useMemo(() => {
+    return sortedProperties
+      .filter((p) => p.inquiries > 0)
+      .sort((a, b) => b.inquiries - a.inquiries)
+      .slice(0, 8);
+  }, [sortedProperties]);
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-amber-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
-    >
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
-      <motion.header
-        variants={itemVariants}
-        className="sticky top-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-700 shadow-sm"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">
-              Seller Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-              Manage your properties and tenants
-            </p>
+      <header className="sticky top-0 z-10 backdrop-blur bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Seller Dashboard</h1>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Manage your property listings and inquiries</p>
+            </div>
+            <button
+              onClick={() => {
+                setEditingId(null);
+                setForm(INITIAL_FORM);
+                setIsFormOpen(true);
+              }}
+              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium inline-flex items-center gap-2 transition-colors"
+            >
+              <PlusCircle className="w-5 h-5" />
+              Add Property
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <StatCard
-              title="Total Properties"
-              value={totalProperties}
-              icon={<Home className="w-6 h-6 text-blue-600" />}
-              color="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/50 dark:to-blue-800/50"
-            />
-            <StatCard
-              title="Active Tenants"
-              value={activeTenants}
-              icon={<Users className="w-6 h-6 text-purple-600" />}
-              color="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/50 dark:to-purple-800/50"
-            />
-            <StatCard
-              title="Monthly Revenue"
-              value={monthlyRevenue}
-              prefix="$"
-              icon={<DollarSign className="w-6 h-6 text-green-600" />}
-              color="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/50 dark:to-green-800/50"
-              trend="+12% from last month"
-            />
-            <StatCard
-              title="Payments Due"
-              value={paymentsDue}
-              icon={<AlertCircle className="w-6 h-6 text-red-600" />}
-              color="bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/50 dark:to-red-800/50"
-            />
-            <StatCard
-              title="Occupancy Rate"
-              value={occupancyRate}
-              suffix="%"
-              icon={<TrendingUp className="w-6 h-6 text-amber-600" />}
-              color="bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/50 dark:to-amber-800/50"
-            />
-          </div>
-        </motion.div>
-
-        {/* My Properties */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Properties</h2>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-semibold flex items-center gap-2 hover:shadow-lg transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Add Property
-            </motion.button>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700/50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Property
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Tenants
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Revenue
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Status
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {properties.map((property) => (
-                    <motion.tr
-                      key={property.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.05)" }}
-                      className="transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <p className="font-semibold text-gray-900 dark:text-white">{property.title}</p>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{property.tenants}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">
-                        ${property.revenue.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold ${
-                            property.status === "occupied"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
-                              : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                          }`}
-                        >
-                          {property.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                          >
-                            <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          </motion.button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Tenant Management */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Tenant Management</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700/50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Tenant
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Property
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Rent
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Payment Status
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Lease End
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {tenants.map((tenant) => (
-                    <motion.tr
-                      key={tenant.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      whileHover={{ backgroundColor: "rgba(251, 191, 36, 0.05)" }}
-                      className="transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">{tenant.name}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">{tenant.email}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{tenant.property}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">
-                        ${tenant.rent.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit ${
-                            tenant.status === "paid"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
-                              : tenant.status === "due"
-                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300"
-                              : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"
-                          }`}
-                        >
-                          {tenant.status === "paid" && <Check className="w-3 h-3" />}
-                          {tenant.status === "overdue" && <AlertCircle className="w-3 h-3" />}
-                          {tenant.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {tenant.leaseEnd}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {tenant.status !== "paid" && (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-semibold flex items-center gap-1 hover:shadow-md transition-all"
-                          >
-                            <Send className="w-3 h-3" />
-                            Remind
-                          </motion.button>
-                        )}
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Payment Tracker */}
-        <motion.div variants={itemVariants} className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Payment Tracker</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {payments.map((payment, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-100 dark:border-gray-700"
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-8">
+        {/* Tab Navigation */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex gap-2 border-b border-slate-200 dark:border-slate-800"
+        >
+          {[
+            { id: "properties", label: "Properties", icon: Home },
+            { id: "buildings", label: "Manage Buildings", icon: Building2 },
+          ].map((tab) => {
+            const TabIcon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <motion.button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as "properties" | "buildings")}
+                className={`flex items-center gap-2 px-4 py-3 font-medium transition-all border-b-2 ${
+                  isActive
+                    ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+                    : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
               >
-                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">{payment.month}</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  ${payment.amount.toLocaleString()}
-                </p>
-                <div className="mt-3">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {payment.status === "received"
-                        ? "100%"
-                        : payment.status === "partial"
-                        ? "43%"
-                        : "0%"}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{
-                        width:
-                          payment.status === "received"
-                            ? "100%"
-                            : payment.status === "partial"
-                            ? "43%"
-                            : "0%",
-                      }}
-                      transition={{ duration: 1, delay: idx * 0.1 + 0.3 }}
-                      className={`h-2 rounded-full ${
-                        payment.status === "received"
-                          ? "bg-gradient-to-r from-green-500 to-green-600"
-                          : payment.status === "partial"
-                          ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
-                          : "bg-gray-300 dark:bg-gray-600"
-                      }`}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                <TabIcon className="w-4 h-4" />
+                {tab.label}
+              </motion.button>
+            );
+          })}
         </motion.div>
 
-        {/* Analytics Placeholder */}
-        <motion.div variants={itemVariants}>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Analytics</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-700 text-center">
-            <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400 font-semibold">
-              Revenue & Occupancy Charts
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-              Advanced analytics coming soon
-            </p>
+        {/* Success Message */}
+        <AnimatePresence>
+          {successMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900 dark:border-emerald-700 p-4 flex items-center gap-3"
+            >
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{successMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          {activeTab === "properties" ? (
+            <motion.div
+              key="properties"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8"
+            >
+
+        {/* Overview Metrics */}
+        <section>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {[
+              { icon: Home, label: "Total Listings", value: metrics.total, color: "indigo" },
+              { icon: BarChart3, label: "Active", value: metrics.active, color: "emerald" },
+              { icon: Clock, label: "Pending", value: metrics.pending, color: "amber" },
+              { icon: Users, label: "Inquiries", value: metrics.totalInquiries, color: "blue" },
+              { icon: TrendingUp, label: "Revenue", value: `$${metrics.totalRevenue.toLocaleString()}`, color: "indigo" },
+            ].map((item, i) => {
+              const iconColor = {
+                blue: "text-blue-500",
+                emerald: "text-emerald-500",
+                amber: "text-amber-500",
+                indigo: "text-indigo-600",
+              }[item.color];
+
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{item.label}</span>
+                    <item.icon className={`w-5 h-5 ${iconColor}`} />
+                  </div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{item.value}</p>
+                </motion.div>
+              );
+            })}
           </div>
-        </motion.div>
-      </div>
-    </motion.div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Add/Edit Property Form */}
+          <motion.section className="lg:col-span-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="border-b border-slate-200 dark:border-slate-800 p-6">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-indigo-600" />
+                {editingId ? "Edit Property" : "Add Property"}
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {[
+                { key: "title", label: "Title", type: "text" },
+                { key: "description", label: "Description", type: "textarea" },
+                { key: "location", label: "Location", type: "text" },
+                { key: "price", label: "Price ($)", type: "number" },
+                { key: "area", label: "Area (sq ft)", type: "number" },
+                { key: "bedrooms", label: "Bedrooms", type: "number" },
+                { key: "bathrooms", label: "Bathrooms", type: "number" },
+                { key: "amenities", label: "Amenities (comma separated)", type: "text" },
+                { key: "images", label: "Images (comma separated URLs) *", type: "text" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {field.label}
+                  </label>
+                  {field.type === "textarea" ? (
+                    <textarea
+                      value={(form as any)[field.key]}
+                      onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-red-500/20 focus:border-red-300 outline-none min-h-20"
+                    />
+                  ) : (
+                    <input
+                      type={field.type}
+                      value={(form as any)[field.key]}
+                      onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-red-500/20 focus:border-red-300 outline-none"
+                    />
+                  )}
+                  {formErrors[field.key] && (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {formErrors[field.key]}
+                    </p>
+                  )}
+                </div>
+              ))}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                  <select
+                    value={form.type}
+                    onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as Property["type"] }))}
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500/20 outline-none"
+                  >
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="industrial">Industrial</option>
+                    <option value="luxury">Luxury</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value as "active" | "draft" }))}
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500/20 outline-none"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors mt-2"
+              >
+                {editingId ? "Update Property" : "Submit Property"}
+              </button>
+            </form>
+          </motion.section>
+
+          {/* Listings & Inquiries */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Recent Listings */}
+            <motion.section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+              <div className="border-b border-slate-200 dark:border-slate-800 p-6">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Home className="w-5 h-5 text-red-500" />
+                  Your Listings ({sellerProperties.length})
+                </h2>
+              </div>
+
+              <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                {sortedProperties.length > 0 ? (
+                  sortedProperties.map((property) => (
+                    <div
+                      key={property.id}
+                      className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                    >
+                      <div className="flex gap-4">
+                        <img
+                          src={property.featuredImage}
+                          alt={property.title}
+                          className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
+                          loading="lazy"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-semibold text-slate-900 dark:text-white truncate">{property.title}</h3>
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
+                                property.status === "active"
+                                  ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-400"
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400"
+                              }`}
+                            >
+                              {property.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{property.location}</p>
+                          <p className="font-semibold text-slate-900 dark:text-white mt-1">${property.price.toLocaleString()}</p>
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() => startEdit(property)}
+                              className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors inline-flex items-center gap-1"
+                            >
+                              <Pencil className="w-3 h-3" /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(property.id)}
+                              className="text-xs px-2 py-1 rounded bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 transition-colors inline-flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" /> Delete
+                            </button>
+                            <button
+                              onClick={() => toggleStatus(property)}
+                              className="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                              {property.status === "active" ? "Archive" : "Activate"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center">
+                    <Home className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
+                    <p className="text-slate-600 dark:text-slate-400">No listings yet. Add your first property!</p>
+                  </div>
+                )}
+              </div>
+            </motion.section>
+
+            {/* Recent Inquiries */}
+            <motion.section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+              <div className="border-b border-slate-200 dark:border-slate-800 p-6">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-indigo-600" />
+                  Recent Inquiries ({metrics.totalInquiries})
+                </h2>
+              </div>
+
+              <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                {recentInquiries.length > 0 ? (
+                  recentInquiries.map((property) => (
+                    <div key={property.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{property.title}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">{property.inquiries} inquiries</p>
+                      </div>
+                      <button className="text-xs px-3 py-1 rounded bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
+                        Reply
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center">
+                    <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
+                    <p className="text-slate-600 dark:text-slate-400">No inquiries yet</p>
+                  </div>
+                )}
+              </div>
+            </motion.section>
+          </div>
+        </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="buildings"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ManageBuildings />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
   );
 }
