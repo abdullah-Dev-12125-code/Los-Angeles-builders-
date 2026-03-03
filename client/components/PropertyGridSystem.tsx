@@ -7,10 +7,29 @@ interface PropertyGridSystemProps {
   properties: Property[];
   onToggleFavorite?: (id: string) => void;
   favorites?: Set<string>;
+  showConnectAction?: boolean;
+  canConnectOnline?: (property: Property) => boolean;
+  onConnectOnline?: (property: Property) => void;
 }
 
 const PropertyCard = memo(
-  ({ property, isFavorite, onToggleFavorite }: { property: Property; isFavorite: boolean; onToggleFavorite?: (id: string) => void }) => {
+  ({
+    property,
+    isFavorite,
+    onToggleFavorite,
+    showConnectAction,
+    canConnectOnline,
+    onConnectOnline,
+  }: {
+    property: Property;
+    isFavorite: boolean;
+    onToggleFavorite?: (id: string) => void;
+    showConnectAction?: boolean;
+    canConnectOnline?: (property: Property) => boolean;
+    onConnectOnline?: (property: Property) => void;
+  }) => {
+    const onlineAvailable = canConnectOnline?.(property) ?? true;
+
     return (
       <motion.article
         whileHover={{ y: -6 }}
@@ -43,6 +62,19 @@ const PropertyCard = memo(
             <span className="inline-flex items-center gap-1"><Star className="w-3.5 h-3.5 text-amber-500" />{property.rating} ({property.reviews})</span>
             <span>{property.views.toLocaleString()} views</span>
           </div>
+          {showConnectAction && (
+            <button
+              onClick={() => onlineAvailable && onConnectOnline?.(property)}
+              disabled={!onlineAvailable}
+              className={`mt-3 w-full rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                onlineAvailable
+                  ? "bg-yellow-100 text-slate-900 hover:bg-yellow-200"
+                  : "bg-slate-100 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {onlineAvailable ? "Connect Online" : "Seller does not operate remotely"}
+            </button>
+          )}
         </div>
       </motion.article>
     );
@@ -51,7 +83,14 @@ const PropertyCard = memo(
 
 PropertyCard.displayName = "PropertyCard";
 
-export default function PropertyGridSystem({ properties, favorites = new Set<string>(), onToggleFavorite }: PropertyGridSystemProps) {
+export default function PropertyGridSystem({
+  properties,
+  favorites = new Set<string>(),
+  onToggleFavorite,
+  showConnectAction,
+  canConnectOnline,
+  onConnectOnline,
+}: PropertyGridSystemProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -65,6 +104,9 @@ export default function PropertyGridSystem({ properties, favorites = new Set<str
           property={property}
           isFavorite={favorites.has(property.id)}
           onToggleFavorite={onToggleFavorite}
+          showConnectAction={showConnectAction}
+          canConnectOnline={canConnectOnline}
+          onConnectOnline={onConnectOnline}
         />
       ))}
     </motion.div>

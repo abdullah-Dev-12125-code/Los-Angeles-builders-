@@ -79,51 +79,73 @@ export default function AdminLogin() {
     }
 
     setLoading(true);
+  setApiError(null);
 
     try {
       // Call backend API for admin login
-      const response = await fetch(`${API_BASE}/api/auth/login/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          role: "admin",
-          username,
-          security_key: securityKey,
-          id_number: idNumber,
-        }),
-      });
+      let response;
+      try {
+        response = await fetch(`${API_BASE}/api/auth/login/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            role: "admin",
+            username,
+            security_key: securityKey,
+            id_number: idNumber,
+          }),
+        });
+      } catch (fetchError) {
+        console.error("Network error:", fetchError);
+        const errorMsg = fetchError instanceof TypeError 
+          ? `Cannot connect to backend server at ${API_BASE}.\n\nPlease ensure:\n• Django server is running: python manage.py runserver 8000\n• Check BACKEND_SETUP.md for setup instructions`
+          : "Network error occurred. Please check your connection.";
+        throw new Error(errorMsg);
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        setApiError(errorData.error || "Login failed. Please check your credentials.");
+        const errorMessage = errorData.error 
+          || errorData.detail 
+          || errorData.message 
+          || "Login failed. Please check your credentials.";
+        setApiError(errorMessage);
         setLoading(false);
         return;
       }
 
       const data = await response.json();
 
+      if (!data.access || !data.refresh) {
+        setApiError("Invalid response from server. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       // Store tokens and role
       setTokens(data.access, data.refresh);
       setStoredRole("admin");
       
       // Store user info
-      localStorage.setItem("userEmail", data.user.email);
-      localStorage.setItem("userName", data.user.first_name || data.user.username);
+      localStorage.setItem("userEmail", data.user?.email || email);
+      localStorage.setItem("userName", data.user?.first_name || data.user?.username || username);
 
       // Redirect to admin dashboard
       navigate("/admin");
     } catch (error) {
       console.error("Login error:", error);
-      setApiError("Network error. Please try again.");
+      if (error instanceof Error) {
+        setApiError(error.message);
+      } else {
+        setApiError("Network error. Please check your connection and try again.");
+      }
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    setLoading(false);
   };
 
   const clearError = (field: string) => {
@@ -135,7 +157,7 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left Side - Hero Image with Carousel */}
-      <div className="hidden lg:block relative bg-gradient-to-br from-blue-100 via-blue-50 to-blue-100 overflow-hidden">
+      <div className="hidden lg:block relative bg-gradient-to-br from-yellow-50 via-white to-yellow-100 overflow-hidden">
         {/* Image Slider */}
         <div className="relative h-full">
           {slides.map((slide, index) => (
@@ -148,26 +170,26 @@ export default function AdminLogin() {
               <img
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover opacity-80"
               />
               {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-yellow-900/60 via-yellow-800/30 to-transparent" />
             </div>
           ))}
         </div>
 
         {/* Logo */}
         <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-yellow-200 to-yellow-300 rounded-full flex items-center justify-center shadow-lg">
             <Building2 className="w-6 h-6 text-gray-900" />
           </div>
-          <span className="text-2xl font-bold text-white">Los Santos</span>
+          <span className="text-2xl font-bold text-white drop-shadow-lg">Los Santos</span>
         </div>
 
         {/* Content */}
         <div className="absolute bottom-0 left-0 right-0 p-12 z-10 text-white">
-          <h1 className="text-5xl font-bold mb-4">{slides[currentSlide].title}</h1>
-          <p className="text-xl mb-8 text-white/90">{slides[currentSlide].subtitle}</p>
+          <h1 className="text-5xl font-bold mb-4 drop-shadow-lg">{slides[currentSlide].title}</h1>
+          <p className="text-xl mb-8 text-white/95 drop-shadow-md">{slides[currentSlide].subtitle}</p>
           
           {/* Carousel Dots */}
           <div className="flex gap-2">
@@ -176,7 +198,7 @@ export default function AdminLogin() {
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`h-2 rounded-full transition-all ${
-                  currentSlide === index ? "w-8 bg-white" : "w-2 bg-white/50"
+                  currentSlide === index ? "w-8 bg-yellow-300" : "w-2 bg-white/60"
                 }`}
               />
             ))}
@@ -185,17 +207,20 @@ export default function AdminLogin() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex flex-col bg-white">
+      <div className="flex flex-col bg-gradient-to-br from-white via-yellow-50/30 to-white">
         {/* Header */}
         <div className="flex items-center justify-between p-6 lg:p-8">
           <div className="lg:hidden flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-gray-900" />
-            <span className="text-xl font-bold">Los Santos</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-yellow-200 to-yellow-300 rounded-full flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-gray-900" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">Los Santos</span>
           </div>
           <div className="ml-auto">
             <Button
               onClick={() => navigate("/")}
-              className="rounded-full bg-gray-900 hover:bg-gray-800 text-white px-6 py-2"
+              variant="ghost"
+              className="rounded-full bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 shadow-none"
             >
               Sign in
             </Button>
@@ -207,15 +232,15 @@ export default function AdminLogin() {
           <div className="w-full max-w-md">
             <div className="mb-10">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome Back to Los Santos!</h1>
-              <p className="text-gray-500">Sign in your account</p>
+              <p className="text-gray-600">Sign in to your admin account</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
               {/* API Error */}
               {apiError && (
-                <div className="flex items-center gap-3 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-xl">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                  <p className="text-sm text-yellow-700">{apiError}</p>
+                <div className="flex items-center gap-3 px-4 py-3 bg-yellow-50 border border-yellow-300/60 rounded-xl">
+                  <AlertCircle className="w-5 h-5 text-yellow-700 flex-shrink-0" />
+                  <p className="text-sm text-yellow-800">{apiError}</p>
                 </div>
               )}
 
@@ -227,7 +252,7 @@ export default function AdminLogin() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="info.madhu786@gmail.com"
+                  placeholder="admin@example.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -235,12 +260,12 @@ export default function AdminLogin() {
                   }}
                   className={`w-full px-4 py-3 border rounded-xl transition-all ${
                     errors.email
-                      ? "border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
+                      ? "border-yellow-400 bg-yellow-50 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
                       : "border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                   }`}
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-yellow-600">{errors.email}</p>
+                  <p className="mt-1 text-sm text-yellow-700">{errors.email}</p>
                 )}
               </div>
 
@@ -260,12 +285,12 @@ export default function AdminLogin() {
                   }}
                   className={`w-full px-4 py-3 border rounded-xl transition-all ${
                     errors.username
-                      ? "border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
+                      ? "border-yellow-400 bg-yellow-50 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
                       : "border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                   }`}
                 />
                 {errors.username && (
-                  <p className="mt-1 text-sm text-yellow-600">{errors.username}</p>
+                  <p className="mt-1 text-sm text-yellow-700">{errors.username}</p>
                 )}
               </div>
 
@@ -285,12 +310,12 @@ export default function AdminLogin() {
                   }}
                   className={`w-full px-4 py-3 border rounded-xl transition-all ${
                     errors.idNumber
-                      ? "border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
+                      ? "border-yellow-400 bg-yellow-50 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
                       : "border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                   }`}
                 />
                 {errors.idNumber && (
-                  <p className="mt-1 text-sm text-yellow-600">{errors.idNumber}</p>
+                  <p className="mt-1 text-sm text-yellow-700">{errors.idNumber}</p>
                 )}
               </div>
 
@@ -310,12 +335,12 @@ export default function AdminLogin() {
                   }}
                   className={`w-full px-4 py-3 border rounded-xl transition-all ${
                     errors.securityKey
-                      ? "border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
+                      ? "border-yellow-400 bg-yellow-50 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
                       : "border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                   }`}
                 />
                 {errors.securityKey && (
-                  <p className="mt-1 text-sm text-yellow-600">{errors.securityKey}</p>
+                  <p className="mt-1 text-sm text-yellow-700">{errors.securityKey}</p>
                 )}
               </div>
 
@@ -336,7 +361,7 @@ export default function AdminLogin() {
                     }}
                     className={`w-full px-4 py-3 border rounded-xl pr-10 transition-all ${
                       errors.password
-                        ? "border-yellow-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
+                        ? "border-yellow-400 bg-yellow-50 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200"
                         : "border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                     }`}
                   />
@@ -349,7 +374,7 @@ export default function AdminLogin() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-yellow-600">{errors.password}</p>
+                  <p className="mt-1 text-sm text-yellow-700">{errors.password}</p>
                 )}
               </div>
 
@@ -360,7 +385,7 @@ export default function AdminLogin() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                    className="w-4 h-4 rounded border-gray-300 text-yellow-400 focus:ring-yellow-300"
                   />
                   <span className="text-sm text-gray-700">Remember Me</span>
                 </label>
@@ -376,7 +401,8 @@ export default function AdminLogin() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium"
+                variant="ghost"
+                className="w-full py-3 bg-gradient-to-r from-yellow-300 to-yellow-200 hover:from-yellow-400 hover:to-yellow-300 text-gray-900 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all"
               >
                 {loading ? (
                   <>
@@ -395,7 +421,7 @@ export default function AdminLogin() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2 py-3 border-2 border-gray-200 hover:border-gray-300 rounded-xl"
+                    className="flex items-center justify-center gap-2 py-3 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl"
                   >
                     <Chrome className="w-5 h-5 text-gray-700" />
                     <span className="text-sm text-gray-700">Continue with Google</span>
@@ -403,7 +429,7 @@ export default function AdminLogin() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex items-center justify-center gap-2 py-3 border-2 border-gray-200 hover:border-gray-300 rounded-xl"
+                    className="flex items-center justify-center gap-2 py-3 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl"
                   >
                     <Facebook className="w-5 h-5 text-blue-600" />
                     <span className="text-sm text-gray-700">Continue with Facebook</span>
@@ -418,7 +444,7 @@ export default function AdminLogin() {
                 Don't have any account?{" "}
                 <button
                   onClick={() => navigate("/user-login")}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-yellow-700 hover:text-yellow-800 font-semibold"
                 >
                   Register
                 </button>

@@ -1,332 +1,385 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Home,
-  KeyRound,
+  Award,
+  Calendar,
+  MapPin,
   Menu,
-  Search,
+  ShieldCheck,
   Star,
-  TrendingUp,
-  UserCircle2,
+  Users2,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const navLinks = [
-  { label: "Projects", href: "#listings" },
-  { label: "Services", href: "#market" },
-  { label: "Cases", href: "#story" },
-  { label: "About", href: "#contact" },
+const navigation = [
+  { label: "Home", href: "#top" },
+  { label: "Projects", href: "#projects" },
+  { label: "Services", href: "#services" },
+  { label: "About", href: "#about" },
+  { label: "Contact", href: "#contact" },
 ];
 
-const modes = ["All", "Buy", "Sell", "Rent"];
+const projects = [
+  {
+    title: "Downtown Office Build",
+    description: "Steel-frame commercial hub with premium finishes.",
+    image: "/assets/project-commercial.jpg",
+    location: "Downtown LA",
+    rating: 4.9,
+    tag: "Commercial",
+    quote: "$2.4M+",
+  },
+  {
+    title: "Sunset High-Rise",
+    description: "Luxury residential tower with skyline views.",
+    image: "/assets/project-highrise.jpg",
+    location: "West LA",
+    rating: 4.8,
+    tag: "Residential",
+    quote: "$3.1M+",
+  },
+  {
+    title: "Harbor Infrastructure",
+    description: "Heavy civil works and logistics upgrades.",
+    image: "/assets/project-infrastructure.jpg",
+    location: "Port of LA",
+    rating: 4.7,
+    tag: "Infrastructure",
+    quote: "$4.0M+",
+  },
+  {
+    title: "Industrial Framework",
+    description: "Precision fabrication and structural assembly.",
+    image: "/assets/project-structural.jpg",
+    location: "South LA",
+    rating: 4.8,
+    tag: "Industrial",
+    quote: "$1.6M+",
+  },
+];
 
-const listings = [
+const services = [
   {
-    title: "Urban Edge",
-    type: "Buy",
-    subtitle: "Luxury apartments",
-    image: "https://images.unsplash.com/photo-1460317442991-0ec209397118?w=1000&q=80",
+    title: "Design-Build",
+    description: "Single-team delivery from concept to completion.",
+    icon: Award,
   },
   {
-    title: "Nova Residences",
-    type: "Sell",
-    subtitle: "High-rise 42 floors",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1000&q=80",
+    title: "Safety First",
+    description: "Strict compliance and on-site risk management.",
+    icon: ShieldCheck,
   },
   {
-    title: "Emerald Tower",
-    type: "Rent",
-    subtitle: "Premium rental suites",
-    image: "https://images.unsplash.com/photo-1472224371017-08207f84aaae?w=1000&q=80",
+    title: "Expert Crews",
+    description: "Skilled project managers and trade specialists.",
+    icon: Users2,
+  },
+];
+
+const testimonials = [
+  {
+    name: "Olivia Chen",
+    role: "Operations Director",
+    quote: "Los Angeles Builders delivered on time with unmatched craftsmanship.",
+  },
+  {
+    name: "Marcus Rivera",
+    role: "Development Partner",
+    quote: "Their coordination and on-site execution were flawless.",
+  },
+  {
+    name: "Priya Patel",
+    role: "Project Owner",
+    quote: "Clear communication, clean job sites, and a great final product.",
   },
 ];
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [activeMode, setActiveMode] = useState("All");
-
-  const filtered = useMemo(() => {
-    if (activeMode === "All") return listings;
-    return listings.filter((item) => item.type === activeMode);
-  }, [activeMode]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div id="top" className="min-h-screen bg-slate-100 text-slate-900">
-      <header className="sticky top-0 z-50 border-b border-blue-200/50 bg-sky-50/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <button type="button" onClick={() => navigate("/welcome")} className="inline-flex items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-lg font-bold text-blue-950">
-              A
-            </span>
-            <span className="text-left leading-tight">
-              <span className="block text-sm font-bold text-blue-950">Aurum</span>
-              <span className="block text-[11px] text-blue-700">Beyond Properties</span>
-            </span>
-          </button>
-
-          <nav className="hidden items-center gap-7 text-sm font-medium text-blue-900/80 md:flex">
-            {navLinks.map((link) => (
-              <a key={link.label} href={link.href} className="hover:text-blue-950 transition-colors">
-                {link.label}
+    <div id="top" className="min-h-screen bg-[#f7f5f2] text-gray-900">
+      <header className="sticky top-0 z-50 bg-[#f7f5f2]/90 backdrop-blur border-b border-black/5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <img src="/assets/logo.png" alt="Los Angeles Builders" className="h-16 w-16" />
+          </div>
+          <nav className="hidden items-center gap-6 text-sm font-medium text-gray-600 md:flex">
+            {navigation.map((item) => (
+              <a key={item.label} href={item.href} className="hover:text-gray-900 transition-colors">
+                {item.label}
               </a>
             ))}
             <Button
               onClick={() => navigate("/user-login")}
-              className="rounded-full bg-blue-950 px-5 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-blue-900"
+              variant="ghost"
+              className="rounded-full bg-gray-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-gray-800 shadow-none"
             >
-              Contact Us
+              Get Quote
             </Button>
           </nav>
-
           <button
-            type="button"
-            className="text-blue-900 md:hidden"
-            onClick={() => setMenuOpen((prev) => !prev)}
+            className="md:hidden text-gray-700"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
-
-        {menuOpen && (
-          <div className="border-t border-blue-200/60 bg-sky-50 px-4 pb-4 md:hidden">
-            <div className="flex flex-col gap-3 pt-4 text-sm font-medium text-blue-900/80">
-              {navLinks.map((link) => (
-                <a key={link.label} href={link.href} className="hover:text-blue-950">
-                  {link.label}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-black/5 bg-[#f7f5f2] px-4 pb-4">
+            <div className="flex flex-col gap-3 pt-4 text-sm font-medium text-gray-600">
+              {navigation.map((item) => (
+                <a key={item.label} href={item.href} className="hover:text-gray-900 transition-colors">
+                  {item.label}
                 </a>
               ))}
               <Button
                 onClick={() => navigate("/user-login")}
-                className="mt-1 rounded-full bg-blue-950 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-blue-900"
+                variant="ghost"
+                className="rounded-full bg-gray-900 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-gray-800 shadow-none"
               >
-                Contact Us
+                Get Quote
               </Button>
             </div>
           </div>
         )}
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-b from-sky-300 via-cyan-300 to-sky-200 p-7 sm:p-10">
-            <div className="max-w-lg space-y-5">
-              <h1 className="text-4xl font-extrabold leading-tight text-blue-950 sm:text-6xl">
-                Building the foundation of excellence
-              </h1>
-              <p className="max-w-md text-sm text-blue-950/80 sm:text-base">
-                One destination to buy, sell, and rent properties with confidence and clarity.
-              </p>
+      <main>
+        <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:min-h-[600px] lg:items-center">
+          <div className="space-y-6">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-gray-600">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              Los Angeles Construction Experts
+            </span>
+            <h1 className="text-4xl font-semibold leading-tight text-gray-900 sm:text-5xl">
+              Build Your Dream.
+              <span className="block text-gray-500">Crafting spaces, shaping futures across Los Angeles.</span>
+            </h1>
+            <p className="max-w-xl text-base text-gray-600 sm:text-lg">
+              We deliver high-impact commercial and residential builds with precision planning,
+              elite crews, and transparent project controls.
+            </p>
+            <div className="flex flex-wrap gap-4">
               <Button
                 onClick={() => navigate("/user-login")}
-                className="rounded-full bg-orange-500 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-white hover:bg-orange-400"
+                variant="ghost"
+                className="rounded-full bg-gray-900 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-gray-800 shadow-none"
               >
-                Book a call
+                Explore Projects
+              </Button>
+              <Button
+                onClick={() => navigate("/seller-login")}
+                variant="ghost"
+                className="rounded-full border-2 border-gray-300 bg-transparent px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-gray-900 hover:bg-gray-100 hover:border-gray-400 shadow-none"
+              >
+                Seller Portal
               </Button>
             </div>
-
-            <img
-              src="https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=1200&q=80"
-              alt="Featured house"
-              className="mt-8 h-56 w-full rounded-[30px] object-cover object-center shadow-2xl sm:h-72"
-            />
-          </div>
-
-          <div className="overflow-hidden rounded-[36px] bg-gradient-to-b from-blue-900 via-blue-950 to-slate-950 p-7 text-white sm:p-10">
-            <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Featured project</p>
-            <h2 className="mt-2 text-3xl font-bold">Zenith Residences</h2>
-            <p className="mt-1 text-sm text-cyan-200">San Francisco, 2026</p>
-
-            <img
-              src="https://images.unsplash.com/photo-1486718448742-163732cd1544?w=1200&q=80"
-              alt="High-rise tower"
-              className="mt-6 h-80 w-full rounded-[28px] object-cover"
-            />
-
-            <Button
-              onClick={() => navigate("/seller-login")}
-              className="mt-6 rounded-full bg-amber-400 px-6 text-xs font-semibold uppercase tracking-[0.2em] text-blue-950 hover:bg-amber-300"
-            >
-              Seller Portal
-            </Button>
-          </div>
-        </section>
-
-        <section className="-mt-1 grid gap-4 rounded-[32px] bg-white p-5 shadow-xl sm:p-6 lg:grid-cols-[1.2fr_1fr_1fr]">
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <UserCircle2 className="h-10 w-10 text-cyan-600" />
+            <div className="flex items-center gap-8 text-sm text-gray-600">
               <div>
-                <p className="font-semibold text-slate-900">Natasha Taylor</p>
-                <p className="text-xs text-slate-500">Aesthetic enthusiast</p>
+                <p className="text-xl font-semibold text-gray-900">1600+</p>
+                <p>Projects Delivered</p>
+              </div>
+              <div>
+                <p className="text-xl font-semibold text-gray-900">98%</p>
+                <p>On-Time Delivery</p>
+              </div>
+              <div>
+                <p className="text-xl font-semibold text-gray-900">25+</p>
+                <p>Years Experience</p>
               </div>
             </div>
-            <p className="mt-3 text-sm text-slate-600">
-              “The easiest way I have found to compare property options and close faster.”
-            </p>
           </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-blue-950">Want free consultation from our agent?</p>
-            <Button
-              onClick={() => navigate("/user-login")}
-              className="mt-4 rounded-full bg-blue-950 px-5 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-blue-900"
-            >
-              Let&apos;s Talk
-            </Button>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-amber-100 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-700">Customer score</p>
-            <p className="mt-2 text-3xl font-bold text-blue-950">60%</p>
-            <p className="mt-1 text-sm text-slate-700">Creative spaces inspired and built with trust.</p>
+          <div className="relative h-[400px] sm:h-[500px] lg:h-[550px]">
+            <div className="absolute -left-8 top-8 hidden h-12 w-12 rounded-2xl bg-white shadow-lg lg:block" />
+            <img
+              src="/assets/hero-crane.jpg"
+              alt="Tower crane at a construction site"
+              className="h-full w-full rounded-[32px] object-cover object-center shadow-2xl"
+            />
           </div>
         </section>
 
-        <section id="market" className="mt-10 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <div className="rounded-[32px] bg-white p-6 shadow-lg sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">Market actions</p>
-            <h3 className="mt-3 text-3xl font-bold text-blue-950">Building dreams, one design at a time</h3>
-            <p className="mt-3 text-sm text-slate-600">
-              Choose your path instantly: buy your next home, list and sell property, or find ideal rentals.
-            </p>
-
-            <div className="mt-6 grid gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/user-login")}
-                className="flex items-center justify-between rounded-2xl bg-cyan-100 px-4 py-3 text-left"
-              >
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-950">
-                  <Home className="h-4 w-4" /> Buy Properties
-                </span>
-                <ArrowRight className="h-4 w-4 text-blue-900" />
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/seller-login")}
-                className="flex items-center justify-between rounded-2xl bg-amber-100 px-4 py-3 text-left"
-              >
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-950">
-                  <TrendingUp className="h-4 w-4" /> Sell Properties
-                </span>
-                <ArrowRight className="h-4 w-4 text-blue-900" />
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/user-login")}
-                className="flex items-center justify-between rounded-2xl bg-blue-100 px-4 py-3 text-left"
-              >
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-950">
-                  <KeyRound className="h-4 w-4" /> Rent Properties
-                </span>
-                <ArrowRight className="h-4 w-4 text-blue-900" />
-              </button>
+        <section id="projects" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <div className="flex items-end justify-between gap-6 pb-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">Our Portfolio</p>
+              <h2 className="text-3xl font-semibold sm:text-4xl">Discover our completed projects</h2>
             </div>
+            <Button
+              variant="ghost"
+              className="hidden rounded-full border-2 border-gray-300 bg-transparent text-gray-900 hover:bg-gray-100 hover:border-gray-400 text-xs font-semibold uppercase tracking-[0.2em] md:flex shadow-none"
+            >
+              View All
+            </Button>
           </div>
-
-          <div id="story" className="rounded-[32px] bg-gradient-to-br from-cyan-300 to-sky-200 p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-3xl font-bold text-blue-950">Turning bold visions into reality</h3>
-              <Button
-                onClick={() => navigate("/user-login")}
-                className="rounded-full bg-orange-500 px-5 text-xs font-bold uppercase tracking-[0.2em] text-white hover:bg-orange-400"
+          <div className="grid gap-6 md:grid-cols-2">
+            {projects.map((project) => (
+              <div
+                key={project.title}
+                className="group overflow-hidden rounded-[28px] border border-black/5 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
               >
-                Build Dreams
+                <div className="relative h-56 overflow-hidden">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute left-5 top-5 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em]">
+                    {project.tag}
+                  </span>
+                </div>
+                <div className="space-y-4 p-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
+                    <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                      <Star className="h-4 w-4 text-amber-500" />
+                      {project.rating}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>{project.location}</span>
+                    <span className="font-semibold text-gray-900">{project.quote}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="services" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">Why Choose Us</p>
+              <h2 className="text-3xl font-semibold sm:text-4xl">Built on experience. Driven by quality.</h2>
+              <p className="text-sm text-gray-600">
+                We coordinate every phase with clear timelines, dedicated supervision, and proactive
+                communication so your project stays on scope and on budget.
+              </p>
+              <Button
+                variant="ghost"
+                className="rounded-full border-2 border-gray-300 bg-transparent text-gray-900 hover:bg-gray-100 hover:border-gray-400 text-xs font-semibold uppercase tracking-[0.2em] shadow-none"
+              >
+                Our Services
               </Button>
             </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {[
-                "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=900&q=80",
-                "https://images.unsplash.com/photo-1460317442991-0ec209397118?w=900&q=80",
-                "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=900&q=80",
-              ].map((image) => (
-                <img key={image} src={image} alt="Property showcase" className="h-40 w-full rounded-2xl object-cover" />
+            <div className="grid gap-4 sm:grid-cols-3">
+              {services.map((service) => (
+                <div key={service.title} className="rounded-3xl border border-black/5 bg-white p-6 shadow-sm">
+                  <service.icon className="h-8 w-8 text-amber-500" />
+                  <h3 className="mt-4 text-lg font-semibold">{service.title}</h3>
+                  <p className="mt-2 text-sm text-gray-600">{service.description}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="listings" className="mt-10 rounded-[34px] bg-blue-950 p-6 text-white sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Active opportunities</p>
-              <h3 className="mt-2 text-3xl font-bold">Buy, sell and rent with confidence</h3>
+        <section id="about" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <div className="rounded-[32px] border border-black/5 bg-white p-10 shadow-sm">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-xl space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">Meet the Experts</p>
+                <h2 className="text-3xl font-semibold sm:text-4xl">The team behind Los Angeles Builders</h2>
+                <p className="text-sm text-gray-600">
+                  Our leadership team blends technical expertise with client-first delivery. We bring
+                  certified managers, field engineers, and safety officers to every build.
+                </p>
+              </div>
+              <Button variant="ghost" className="rounded-full bg-gray-900 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-gray-800 shadow-none">
+                Meet the Team
+              </Button>
             </div>
-
-            <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2">
-              <Search className="h-4 w-4 text-cyan-200" />
-              <input
-                aria-label="Search listings"
-                placeholder="Search by area"
-                className="bg-transparent text-sm text-white placeholder:text-white/65 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            {modes.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setActiveMode(mode)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                  activeMode === mode
-                    ? "bg-amber-400 text-blue-950"
-                    : "bg-white/10 text-white/80 hover:bg-white/20"
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((item, index) => (
-              <article
-                key={item.title}
-                className={`overflow-hidden rounded-3xl ${
-                  index === 1 ? "bg-amber-200 text-blue-950" : "bg-white/10 text-white"
-                }`}
-              >
-                <img src={item.image} alt={item.title} className="h-44 w-full object-cover" />
-                <div className="space-y-2 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">{item.type}</p>
-                  <h4 className="text-lg font-bold">{item.title}</h4>
-                  <p className="text-sm opacity-80">{item.subtitle}</p>
-                  <p className="inline-flex items-center gap-1 text-sm font-semibold">
-                    <Star className="h-4 w-4 fill-current" /> 4.9
-                  </p>
+            <div className="mt-8 grid gap-6 sm:grid-cols-3">
+              {[
+                { name: "Abdullah Hussain", role: "CEO & Founder" },
+                { name: "Fatima Malik", role: "Senior Site Engineer" },
+                { name: "Imran Qureshi", role: "Construction Director" },
+              ].map((member) => (
+                <div key={member.name} className="rounded-2xl border border-black/5 bg-[#f7f5f2] p-6">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-sm font-semibold text-gray-900">
+                    {member.name
+                      .split(" ")
+                      .map((part) => part[0])
+                      .join("")}
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold">{member.name}</h3>
+                  <p className="text-sm text-gray-600">{member.role}</p>
                 </div>
-              </article>
-            ))}
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+          <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+            <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600">Client Voices</p>
+              <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">What our clients say</h2>
+              <p className="mt-4 text-sm text-gray-600">
+                We are proud to be trusted by commercial, residential, and infrastructure partners across LA.
+              </p>
+              <div className="mt-6 flex items-center gap-4 rounded-2xl bg-[#f7f5f2] px-5 py-4">
+                <div className="flex items-center gap-1 text-amber-500">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Star key={index} className="h-4 w-4" />
+                  ))}
+                </div>
+                <p className="text-sm font-semibold text-gray-900">4.9 average project rating</p>
+              </div>
+            </div>
+            <div className="grid gap-4">
+              {testimonials.map((item) => (
+                <div key={item.name} className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+                  <p className="text-sm text-gray-700">"{item.quote}"</p>
+                  <div className="mt-4 text-sm font-semibold text-gray-900">{item.name}</div>
+                  <div className="text-xs text-gray-500">{item.role}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>
 
-      <footer id="contact" className="mt-10 bg-slate-950">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 px-4 py-8 text-center sm:px-6 lg:flex-row lg:text-left">
-          <div>
-            <p className="text-xl font-bold text-white">Aurum.</p>
-            <p className="mt-1 text-sm text-white/65">Property platform for buying, selling, and renting.</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-3">
+      <footer id="contact" className="border-t border-black/5 bg-white">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.2fr_1fr]">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">Start your project with Los Angeles Builders</h2>
+            <p className="text-sm text-gray-600">
+              Tell us about your build. We will respond with a tailored plan, timeline, and quote.
+            </p>
             <Button
               onClick={() => navigate("/user-login")}
-              className="rounded-full bg-amber-400 px-6 text-xs font-semibold uppercase tracking-[0.2em] text-blue-950 hover:bg-amber-300"
+              variant="ghost"
+              className="rounded-full bg-gray-900 px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-gray-800 shadow-none"
             >
-              User Login
+              Request a Quote
             </Button>
-            <Button
-              onClick={() => navigate("/seller-login")}
-              className="rounded-full bg-cyan-300 px-6 text-xs font-semibold uppercase tracking-[0.2em] text-blue-950 hover:bg-cyan-200"
-            >
-              Seller Login
-            </Button>
+          </div>
+          <div className="space-y-3 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-amber-500" />
+              1080 Wilshire Blvd, Los Angeles, CA
+            </div>
+            <div className="flex items-center gap-2">
+              <Users2 className="h-4 w-4 text-amber-500" />
+              contact@labuilders.com
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-amber-500" />
+              Mon-Fri, 8:00AM-6:00PM
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-black/5">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 text-xs text-gray-500 sm:flex-row sm:px-6">
+            <div>© 2026 Los Angeles Builders. All rights reserved.</div>
           </div>
         </div>
       </footer>

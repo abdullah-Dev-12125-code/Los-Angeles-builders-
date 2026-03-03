@@ -2,11 +2,12 @@ import { FormEvent, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye, MessageSquare, PlusCircle, Trash2, Pencil, CheckCircle2, AlertCircle,
-  TrendingUp, Home, BarChart3, DollarSign, Users, Clock, Upload, Building2
+  TrendingUp, Home, BarChart3, DollarSign, Users, Clock, Upload, Building2, Wifi, WifiOff, BellRing, ReceiptText
 } from "lucide-react";
 import { Property, PropertyStatus, getProperties, upsertProperty, deletePropertyById, updatePropertyStatus } from "@/lib/property-system";
 import { getRandomPropertyImage } from "@/lib/image-service";
 import ManageBuildings from "@/components/ManageBuildings";
+import { addSellerMessage, getSellerCommunicationSettings, updateSellerCommunicationSettings } from "@/lib/seller-communication";
 
 type FormState = {
   title: string;
@@ -49,6 +50,11 @@ export default function SellerDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"properties" | "buildings">("properties");
+  const [communicationSettings, setCommunicationSettings] = useState(() => getSellerCommunicationSettings(SELLER_ID));
+  const [noticeType, setNoticeType] = useState<"warning" | "notification" | "rent" | "tax">("notification");
+  const [noticeTitle, setNoticeTitle] = useState("");
+  const [noticeMessage, setNoticeMessage] = useState("");
+  const [noticeAmount, setNoticeAmount] = useState("");
 
   // Get seller's properties
   const sellerProperties = useMemo(
@@ -165,6 +171,35 @@ export default function SellerDashboard() {
     setProperties(updatePropertyStatus(property.id, newStatus));
   }, []);
 
+  const updateRemoteMode = useCallback((allowRemoteConnection: boolean) => {
+    const next = updateSellerCommunicationSettings(SELLER_ID, { allowRemoteConnection });
+    setCommunicationSettings(next);
+    setSuccessMessage(allowRemoteConnection ? "Online buyer connection enabled." : "Remote connection disabled for buyers.");
+    setTimeout(() => setSuccessMessage(""), 2500);
+  }, []);
+
+  const handleSendBuyerMessage = useCallback((e: FormEvent) => {
+    e.preventDefault();
+    if (!noticeTitle.trim() || !noticeMessage.trim()) {
+      setSuccessMessage("Please provide both title and message before sending.");
+      setTimeout(() => setSuccessMessage(""), 2500);
+      return;
+    }
+
+    addSellerMessage(SELLER_ID, {
+      type: noticeType,
+      title: noticeTitle.trim(),
+      message: noticeMessage.trim(),
+      amount: noticeAmount ? Number(noticeAmount) : undefined,
+    });
+
+    setNoticeTitle("");
+    setNoticeMessage("");
+    setNoticeAmount("");
+    setSuccessMessage("Buyer update sent successfully.");
+    setTimeout(() => setSuccessMessage(""), 2500);
+  }, [noticeAmount, noticeMessage, noticeTitle, noticeType]);
+
   // Sort properties for display
   const sortedProperties = useMemo(() => {
     return [...sellerProperties].sort(
@@ -261,6 +296,82 @@ export default function SellerDashboard() {
               transition={{ duration: 0.2 }}
               className="space-y-8"
             >
+
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <motion.div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Connect Option</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Allow buyers to connect with you online only when you want to.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => updateRemoteMode(true)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  communicationSettings.allowRemoteConnection
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <Wifi className="w-4 h-4" /> Operate Remotely
+              </button>
+              <button
+                onClick={() => updateRemoteMode(false)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  !communicationSettings.allowRemoteConnection
+                    ? "bg-slate-900 text-white"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <WifiOff className="w-4 h-4" /> No Remote Operations
+              </button>
+            </div>
+          </motion.div>
+
+          <motion.form onSubmit={handleSendBuyerMessage} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-3">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Buyer Notifications</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Send warnings, notifications, rent bills, or tax notices through the app.
+            </p>
+            <select
+              value={noticeType}
+              onChange={(e) => setNoticeType(e.target.value as "warning" | "notification" | "rent" | "tax")}
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+            >
+              <option value="notification">General Notification</option>
+              <option value="warning">Warning</option>
+              <option value="rent">Rent Bill</option>
+              <option value="tax">Tax Notice</option>
+            </select>
+            <input
+              value={noticeTitle}
+              onChange={(e) => setNoticeTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+            />
+            <textarea
+              value={noticeMessage}
+              onChange={(e) => setNoticeMessage(e.target.value)}
+              placeholder="Message for buyers"
+              rows={3}
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+            />
+            {(noticeType === "rent" || noticeType === "tax") && (
+              <input
+                value={noticeAmount}
+                onChange={(e) => setNoticeAmount(e.target.value)}
+                type="number"
+                placeholder="Amount (optional)"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              />
+            )}
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 text-slate-900 text-sm font-medium transition-colors"
+            >
+              <BellRing className="w-4 h-4" /> Send Update
+            </button>
+          </motion.form>
+        </section>
 
         {/* Overview Metrics */}
         <section>

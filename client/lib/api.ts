@@ -1,3 +1,7 @@
+// API Base URL Configuration
+// VITE_API_BASE_URL can be set in .env file
+// Default: Django backend at http://127.0.0.1:8000
+// Alternative: Express backend at http://localhost:8080
 export const API_BASE =
   import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
