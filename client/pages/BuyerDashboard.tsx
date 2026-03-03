@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { PanelRightOpen, PanelRightClose, Bell, Receipt, FileText } from "lucide-react";
 import { useUserContext } from "@/lib/user-context";
-import ProfileDropdown from "@/components/ProfileDropdown";
+import PremiumShell from "@/components/PremiumShell";
 import PropertyGridSystem from "@/components/PropertyGridSystem";
 import { getProperties, Property } from "@/lib/property-system";
 import { getMessagesForSeller, isSellerAvailableOnline } from "@/lib/seller-communication";
@@ -28,6 +28,13 @@ const DEFAULT_PREFERENCES: BuyerPreferences = {
 };
 
 const PREFERENCES_KEY = "buyerDashboardPreferences";
+
+const BUYER_NAV_ITEMS = [
+  { label: "Browse", to: "/dashboard" },
+  { label: "My Properties", to: "/user-properties" },
+  { label: "Payments", to: "/user-payments" },
+  { label: "Profile", to: "/user-profile" },
+];
 
 export default function BuyerDashboard() {
   const { userProfile } = useUserContext();
@@ -94,27 +101,31 @@ export default function BuyerDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between px-4 py-4 md:px-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Welcome, {userProfile.name.split(" ")[0]}</h1>
-            <p className="text-sm text-slate-600">Browse available properties tailored to your needs.</p>
-          </div>
-          <ProfileDropdown userName={userProfile.name} userEmail={userProfile.email} userImage={userProfile.profileImage} />
+    <PremiumShell
+      userName={userProfile.name}
+      userEmail={userProfile.email}
+      userImage={userProfile.profileImage}
+      navItems={BUYER_NAV_ITEMS}
+    >
+      <section className="mx-auto w-full max-w-screen-2xl px-4 pt-6 md:px-6">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-semibold text-slate-900">Buyer Dashboard</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Welcome back, {userProfile.name.split(" ")[0]}. Explore listings, compare options, and connect with sellers.
+          </p>
         </div>
-      </header>
+      </section>
 
       <div className="relative mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-12 md:px-6">
         <aside className="md:col-span-3 space-y-4">
-          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-slate-900">Buyer Records</h2>
             <p className="mt-2 text-xs text-slate-600">Saved Properties: {favorites.size}</p>
             <p className="mt-1 text-xs text-slate-600">Active Matches: {filteredProperties.length}</p>
             <p className="mt-1 text-xs text-slate-600">Preferences: {preferences.requirements ? "Configured" : "Not set"}</p>
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
               <FileText className="h-4 w-4 text-yellow-600" /> Buyer Taxes
             </h2>
@@ -129,7 +140,7 @@ export default function BuyerDashboard() {
             )}
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
               <Receipt className="h-4 w-4 text-yellow-600" /> Buyer Rent
             </h2>
@@ -149,7 +160,7 @@ export default function BuyerDashboard() {
             )}
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
             <h2 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
               <Bell className="h-4 w-4 text-yellow-600" /> Alerts & Notifications
             </h2>
@@ -170,7 +181,7 @@ export default function BuyerDashboard() {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-slate-700"
+              className="mb-4 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-slate-700 shadow-sm"
             >
               {connectMessage}
             </motion.div>
@@ -186,7 +197,7 @@ export default function BuyerDashboard() {
               onConnectOnline={handleConnect}
             />
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-600">
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-slate-600 shadow-sm">
               No properties match your preferences right now.
             </div>
           )}
@@ -202,7 +213,7 @@ export default function BuyerDashboard() {
       </button>
 
       <aside
-        className={`fixed right-0 top-0 z-30 h-full w-[320px] border-l border-slate-200 bg-white p-5 shadow-xl transition-transform duration-300 ${
+        className={`fixed right-0 top-0 z-40 h-full w-[320px] border-l border-slate-200 bg-white p-5 shadow-xl transition-transform duration-300 ${
           preferencesOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -272,6 +283,6 @@ export default function BuyerDashboard() {
           />
         </div>
       </aside>
-    </div>
+    </PremiumShell>
   );
 }

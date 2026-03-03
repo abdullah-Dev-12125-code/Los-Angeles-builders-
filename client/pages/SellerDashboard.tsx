@@ -8,6 +8,8 @@ import { Property, PropertyStatus, getProperties, upsertProperty, deleteProperty
 import { getRandomPropertyImage } from "@/lib/image-service";
 import ManageBuildings from "@/components/ManageBuildings";
 import { addSellerMessage, getSellerCommunicationSettings, updateSellerCommunicationSettings } from "@/lib/seller-communication";
+import PremiumShell from "@/components/PremiumShell";
+import { useUserContext } from "@/lib/user-context";
 
 type FormState = {
   title: string;
@@ -41,7 +43,15 @@ const INITIAL_FORM: FormState = {
 
 const SELLER_ID = "seller-1";
 
+const SELLER_NAV_ITEMS = [
+  { label: "Overview", to: "/seller" },
+  { label: "Command Center", to: "/command-center" },
+  { label: "Verification", to: "/seller-verification" },
+  { label: "Seller Pro", to: "/seller-pro" },
+];
+
 export default function SellerDashboard() {
+  const { userProfile } = useUserContext();
   const [properties, setProperties] = useState<Property[]>(() => getProperties());
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -216,14 +226,18 @@ export default function SellerDashboard() {
   }, [sortedProperties]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* Header */}
-      <header className="sticky top-0 z-10 backdrop-blur bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-          <div className="flex items-center justify-between gap-4">
+    <PremiumShell
+      userName={userProfile.name}
+      userEmail={userProfile.email}
+      userImage={userProfile.profileImage}
+      navItems={SELLER_NAV_ITEMS}
+    >
+      <main className="mx-auto w-full max-w-screen-2xl px-4 py-8 md:px-6 space-y-8">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Seller Dashboard</h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Manage your property listings and inquiries</p>
+              <h1 className="text-3xl font-bold text-slate-900">Seller Dashboard</h1>
+              <p className="mt-1 text-sm text-slate-600">Manage listings, notifications, buyer connections, and billing from one place.</p>
             </div>
             <button
               onClick={() => {
@@ -231,21 +245,18 @@ export default function SellerDashboard() {
                 setForm(INITIAL_FORM);
                 setIsFormOpen(true);
               }}
-              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium inline-flex items-center gap-2 transition-colors"
+              className="px-4 py-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 text-slate-900 font-medium inline-flex items-center gap-2 transition-colors"
             >
               <PlusCircle className="w-5 h-5" />
               Add Property
             </button>
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 space-y-8">
+        </section>
         {/* Tab Navigation */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex gap-2 border-b border-slate-200 dark:border-slate-800"
+          className="flex gap-2 border-b border-slate-200"
         >
           {[
             { id: "properties", label: "Properties", icon: Home },
@@ -259,8 +270,8 @@ export default function SellerDashboard() {
                 onClick={() => setActiveTab(tab.id as "properties" | "buildings")}
                 className={`flex items-center gap-2 px-4 py-3 font-medium transition-all border-b-2 ${
                   isActive
-                    ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
-                    : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    ? "border-yellow-500 text-slate-900"
+                    : "border-transparent text-slate-600 hover:text-slate-900"
                 }`}
               >
                 <TabIcon className="w-4 h-4" />
@@ -277,10 +288,10 @@ export default function SellerDashboard() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900 dark:border-emerald-700 p-4 flex items-center gap-3"
+              className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 flex items-center gap-3"
             >
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{successMessage}</span>
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <span className="text-sm font-medium text-emerald-600">{successMessage}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -298,9 +309,9 @@ export default function SellerDashboard() {
             >
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <motion.div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Connect Option</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+          <motion.div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">Connect Option</h2>
+            <p className="text-sm text-slate-600 mb-4">
               Allow buyers to connect with you online only when you want to.
             </p>
             <div className="flex flex-wrap gap-2">
@@ -308,7 +319,7 @@ export default function SellerDashboard() {
                 onClick={() => updateRemoteMode(true)}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   communicationSettings.allowRemoteConnection
-                    ? "bg-emerald-100 text-emerald-700"
+                    ? "bg-yellow-100 text-slate-900"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -318,7 +329,7 @@ export default function SellerDashboard() {
                 onClick={() => updateRemoteMode(false)}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   !communicationSettings.allowRemoteConnection
-                    ? "bg-slate-900 text-white"
+                    ? "bg-slate-800 text-white"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -327,15 +338,15 @@ export default function SellerDashboard() {
             </div>
           </motion.div>
 
-          <motion.form onSubmit={handleSendBuyerMessage} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-3">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Buyer Notifications</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+          <motion.form onSubmit={handleSendBuyerMessage} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
+            <h2 className="text-lg font-semibold text-slate-900">Buyer Notifications</h2>
+            <p className="text-sm text-slate-600">
               Send warnings, notifications, rent bills, or tax notices through the app.
             </p>
             <select
               value={noticeType}
               onChange={(e) => setNoticeType(e.target.value as "warning" | "notification" | "rent" | "tax")}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-yellow-400 outline-none"
             >
               <option value="notification">General Notification</option>
               <option value="warning">Warning</option>
@@ -346,14 +357,14 @@ export default function SellerDashboard() {
               value={noticeTitle}
               onChange={(e) => setNoticeTitle(e.target.value)}
               placeholder="Title"
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-yellow-400 outline-none"
             />
             <textarea
               value={noticeMessage}
               onChange={(e) => setNoticeMessage(e.target.value)}
               placeholder="Message for buyers"
               rows={3}
-              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-yellow-400 outline-none"
             />
             {(noticeType === "rent" || noticeType === "tax") && (
               <input
@@ -361,7 +372,7 @@ export default function SellerDashboard() {
                 onChange={(e) => setNoticeAmount(e.target.value)}
                 type="number"
                 placeholder="Amount (optional)"
-                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-yellow-400 outline-none"
               />
             )}
             <button
@@ -375,20 +386,21 @@ export default function SellerDashboard() {
 
         {/* Overview Metrics */}
         <section>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Overview</h2>
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {[
-              { icon: Home, label: "Total Listings", value: metrics.total, color: "indigo" },
+              { icon: Home, label: "Total Listings", value: metrics.total, color: "slate" },
               { icon: BarChart3, label: "Active", value: metrics.active, color: "emerald" },
               { icon: Clock, label: "Pending", value: metrics.pending, color: "amber" },
               { icon: Users, label: "Inquiries", value: metrics.totalInquiries, color: "blue" },
-              { icon: TrendingUp, label: "Revenue", value: `$${metrics.totalRevenue.toLocaleString()}`, color: "indigo" },
+              { icon: TrendingUp, label: "Revenue", value: `$${metrics.totalRevenue.toLocaleString()}`, color: "yellow" },
             ].map((item, i) => {
               const iconColor = {
                 blue: "text-blue-500",
                 emerald: "text-emerald-500",
                 amber: "text-amber-500",
-                indigo: "text-indigo-600",
+                slate: "text-slate-700",
+                yellow: "text-yellow-600",
               }[item.color];
 
               return (
@@ -397,25 +409,43 @@ export default function SellerDashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow"
+                  className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{item.label}</span>
+                    <span className="text-sm font-medium text-slate-600">{item.label}</span>
                     <item.icon className={`w-5 h-5 ${iconColor}`} />
                   </div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{item.value}</p>
+                  <p className="text-2xl font-bold text-slate-900">{item.value}</p>
                 </motion.div>
               );
             })}
           </div>
         </section>
 
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-900">Billing System</h3>
+            <p className="mt-2 text-sm text-slate-600">Collected Revenue</p>
+            <p className="text-2xl font-semibold text-slate-900">${metrics.totalRevenue.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-900">Pending Billing</h3>
+            <p className="mt-2 text-sm text-slate-600">Based on pending listings</p>
+            <p className="text-2xl font-semibold text-slate-900">${(metrics.pending * 250).toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-900">Average Listing Value</h3>
+            <p className="mt-2 text-sm text-slate-600">Calculated from your inventory</p>
+            <p className="text-2xl font-semibold text-slate-900">${Math.round(metrics.avgPrice).toLocaleString()}</p>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Add/Edit Property Form */}
-          <motion.section className="lg:col-span-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-            <div className="border-b border-slate-200 dark:border-slate-800 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-indigo-600" />
+          <motion.section className="lg:col-span-1 rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 p-6">
+              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-yellow-600" />
                 {editingId ? "Edit Property" : "Add Property"}
               </h2>
             </div>
@@ -433,25 +463,25 @@ export default function SellerDashboard() {
                 { key: "images", label: "Images (comma separated URLs) *", type: "text" },
               ].map((field) => (
                 <div key={field.key}>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     {field.label}
                   </label>
                   {field.type === "textarea" ? (
                     <textarea
                       value={(form as any)[field.key]}
                       onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-red-500/20 focus:border-red-300 outline-none min-h-20"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none min-h-20"
                     />
                   ) : (
                     <input
                       type={field.type}
                       value={(form as any)[field.key]}
                       onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-red-500/20 focus:border-red-300 outline-none"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none"
                     />
                   )}
                   {formErrors[field.key] && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
+                    <p className="text-xs text-amber-700 mt-1 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" /> {formErrors[field.key]}
                     </p>
                   )}
@@ -460,11 +490,11 @@ export default function SellerDashboard() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
                   <select
                     value={form.type}
                     onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value as Property["type"] }))}
-                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500/20 outline-none"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none"
                   >
                     <option value="residential">Residential</option>
                     <option value="commercial">Commercial</option>
@@ -473,11 +503,11 @@ export default function SellerDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
                   <select
                     value={form.status}
                     onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value as "active" | "draft" }))}
-                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500/20 outline-none"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-yellow-200 focus:border-yellow-400 outline-none"
                   >
                     <option value="draft">Draft</option>
                     <option value="active">Active</option>
@@ -487,7 +517,7 @@ export default function SellerDashboard() {
 
               <button
                 type="submit"
-                className="w-full px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-colors mt-2"
+                className="w-full px-4 py-2 rounded-lg bg-yellow-200 hover:bg-yellow-300 text-slate-900 font-medium transition-colors mt-2"
               >
                 {editingId ? "Update Property" : "Submit Property"}
               </button>
@@ -497,20 +527,20 @@ export default function SellerDashboard() {
           {/* Listings & Inquiries */}
           <div className="lg:col-span-2 space-y-6">
             {/* Recent Listings */}
-            <motion.section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-              <div className="border-b border-slate-200 dark:border-slate-800 p-6">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Home className="w-5 h-5 text-red-500" />
+            <motion.section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-200 p-6">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <Home className="w-5 h-5 text-yellow-600" />
                   Your Listings ({sellerProperties.length})
                 </h2>
               </div>
 
-              <div className="divide-y divide-slate-200 dark:divide-slate-800">
+              <div className="divide-y divide-slate-200">
                 {sortedProperties.length > 0 ? (
                   sortedProperties.map((property) => (
                     <div
                       key={property.id}
-                      className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                      className="p-4 hover:bg-slate-50 transition-colors"
                     >
                       <div className="flex gap-4">
                         <img
@@ -521,35 +551,35 @@ export default function SellerDashboard() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-semibold text-slate-900 dark:text-white truncate">{property.title}</h3>
+                            <h3 className="font-semibold text-slate-900 truncate">{property.title}</h3>
                             <span
                               className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                                 property.status === "active"
-                                  ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-400"
-                                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-slate-100 text-slate-700"
                               }`}
                             >
                               {property.status}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{property.location}</p>
-                          <p className="font-semibold text-slate-900 dark:text-white mt-1">${property.price.toLocaleString()}</p>
+                          <p className="text-sm text-slate-600 truncate">{property.location}</p>
+                          <p className="font-semibold text-slate-900 mt-1">${property.price.toLocaleString()}</p>
                           <div className="flex gap-2 mt-2">
                             <button
                               onClick={() => startEdit(property)}
-                              className="text-xs px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors inline-flex items-center gap-1"
+                              className="text-xs px-2 py-1 rounded bg-yellow-100 text-slate-800 hover:bg-yellow-200 transition-colors inline-flex items-center gap-1"
                             >
                               <Pencil className="w-3 h-3" /> Edit
                             </button>
                             <button
                               onClick={() => handleDelete(property.id)}
-                              className="text-xs px-2 py-1 rounded bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 transition-colors inline-flex items-center gap-1"
+                              className="text-xs px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors inline-flex items-center gap-1"
                             >
                               <Trash2 className="w-3 h-3" /> Delete
                             </button>
                             <button
                               onClick={() => toggleStatus(property)}
-                              className="text-xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                              className="text-xs px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
                             >
                               {property.status === "active" ? "Archive" : "Activate"}
                             </button>
@@ -560,39 +590,39 @@ export default function SellerDashboard() {
                   ))
                 ) : (
                   <div className="p-8 text-center">
-                    <Home className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-                    <p className="text-slate-600 dark:text-slate-400">No listings yet. Add your first property!</p>
+                    <Home className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-600">No listings yet. Add your first property!</p>
                   </div>
                 )}
               </div>
             </motion.section>
 
             {/* Recent Inquiries */}
-            <motion.section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-              <div className="border-b border-slate-200 dark:border-slate-800 p-6">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-indigo-600" />
+            <motion.section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-200 p-6">
+                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-yellow-600" />
                   Recent Inquiries ({metrics.totalInquiries})
                 </h2>
               </div>
 
-              <div className="divide-y divide-slate-200 dark:divide-slate-800">
+              <div className="divide-y divide-slate-200">
                 {recentInquiries.length > 0 ? (
                   recentInquiries.map((property) => (
-                    <div key={property.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between">
+                    <div key={property.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{property.title}</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">{property.inquiries} inquiries</p>
+                        <p className="font-medium text-slate-900">{property.title}</p>
+                        <p className="text-sm text-slate-600">{property.inquiries} inquiries</p>
                       </div>
-                      <button className="text-xs px-3 py-1 rounded bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
+                      <button className="text-xs px-3 py-1 rounded bg-yellow-100 text-slate-800 hover:bg-yellow-200 transition-colors">
                         Reply
                       </button>
                     </div>
                   ))
                 ) : (
                   <div className="p-8 text-center">
-                    <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-                    <p className="text-slate-600 dark:text-slate-400">No inquiries yet</p>
+                    <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                    <p className="text-slate-600">No inquiries yet</p>
                   </div>
                 )}
               </div>
@@ -613,6 +643,6 @@ export default function SellerDashboard() {
           )}
         </AnimatePresence>
       </main>
-    </div>
+    </PremiumShell>
   );
 }
